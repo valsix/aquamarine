@@ -1,0 +1,432 @@
+<?php
+defined('BASEPATH') or exit('No direct script access allowed');
+
+include_once("functions/default.func.php");
+include_once("functions/string.func.php");
+include_once("functions/date.func.php");
+// include_once("lib/excel/excel_reader2.php");
+
+class personal_kualifikasi_json extends CI_Controller
+{
+    function __construct()
+    {
+        parent::__construct();
+
+        if (!$this->kauth->getInstance()->hasIdentity()) {
+            redirect('login');
+        }
+
+        $this->db->query("SET DATESTYLE TO PostgreSQL,European;");
+        $this->USERID = $this->kauth->getInstance()->getIdentity()->USERID;
+        $this->USERNAME = $this->kauth->getInstance()->getIdentity()->USERNAME;
+        $this->FULLNAME = $this->kauth->getInstance()->getIdentity()->FULLNAME;
+        $this->USERPASS = $this->kauth->getInstance()->getIdentity()->USERPASS;
+        $this->LEVEL = $this->kauth->getInstance()->getIdentity()->LEVEL;
+        $this->MENUMARKETING = $this->kauth->getInstance()->getIdentity()->MENUMARKETING;
+        $this->MENUFINANCE = $this->kauth->getInstance()->getIdentity()->MENUFINANCE;
+        $this->MENUPRODUCTION = $this->kauth->getInstance()->getIdentity()->MENUPRODUCTION;
+        $this->MENUDOCUMENT = $this->kauth->getInstance()->getIdentity()->MENUDOCUMENT;
+        $this->MENUSEARCH = $this->kauth->getInstance()->getIdentity()->MENUSEARCH;
+        $this->MENUOTHERS = $this->kauth->getInstance()->getIdentity()->MENUOTHERS;
+    }
+
+    function json()
+    {
+        $this->load->model("JenisKualifikasi");
+        $jenis_kualifikasi = new JenisKualifikasi();
+        $this->load->model("DokumenCertificate");
+        $dokumen_certificate = new DokumenCertificate();
+
+     
+        $aColumns = array(
+            "DOCUMENT_ID", "NAME", "ADDRESS", "BIRTH_DATE", "PHONE", "QUALIFICATION", "CERTIFICATE","STATUS"
+        );
+        $aColumnsAlias = array(
+            "DOCUMENT_ID", "NAME", "ADDRESS", "BIRTH_DATE", "PHONE", "QUALIFICATION", "CERTIFICATE","STATUS"
+        );
+
+        /*
+		 * Ordering
+		 */
+        if (isset($_GET['iSortCol_0'])) {
+            $sOrder = " ORDER BY ";
+
+            //Go over all sorting cols
+            for ($i = 0; $i < intval($_GET['iSortingCols']); $i++) {
+                //If need to sort by current col
+                if ($_GET['bSortable_' . intval($_GET['iSortCol_' . $i])] == "true") {
+                    //Add to the order by clause
+                    $sOrder .= $aColumnsAlias[intval($_GET['iSortCol_' . $i])];
+
+                    //Determine if it is sorted asc or desc
+                    if (strcasecmp(($_GET['sSortDir_' . $i]), "asc") == 0) {
+                        $sOrder .= " asc, ";
+                    } else {
+                        $sOrder .= " desc, ";
+                    }
+                }
+            }
+
+            //Remove the last space / comma
+            $sOrder = substr_replace($sOrder, "", -2);
+
+            //Check if there is an order by clause
+            if (trim($sOrder) == "ORDER BY A.DOCUMENT_ID asc") {
+                /*
+				* If there is no order by clause - ORDER BY INDEX COLUMN!!! DON'T DELETE IT!
+				* If there is no order by clause there might be bugs in table display.
+				* No order by clause means that the db is not responsible for the data ordering,
+				* which means that the same row can be displayed in two pages - while
+				* another row will not be displayed at all.
+				*/
+                $sOrder = " ORDER BY A.DOCUMENT_ID asc";
+            }
+        }
+
+        /*
+		 * Filtering
+		 * NOTE this does not match the built-in DataTables filtering which does it
+		 * word by word on any field. It's possible to do here, but concerned about efficiency
+		 * on very large tables.
+		 */
+        $sWhere = "";
+        $nWhereGenearalCount = 0;
+        if (isset($_GET['sSearch'])) {
+            $sWhereGenearal = $_GET['sSearch'];
+        } else {
+            $sWhereGenearal = '';
+        }
+
+        if ($_GET['sSearch'] != "") {
+            //Set a default where clause in order for the where clause not to fail
+            //in cases where there are no searchable cols at all.
+            $sWhere = " AND (";
+            for ($i = 0; $i < count($aColumnsAlias) + 1; $i++) {
+                //If current col has a search param
+                if ($_GET['bSearchable_' . $i] == "true") {
+                    //Add the search to the where clause
+                    $sWhere .= $aColumnsAlias[$i] . " LIKE '%" . $_GET['sSearch'] . "%' OR ";
+                    $nWhereGenearalCount += 1;
+                }
+            }
+            $sWhere = substr_replace($sWhere, "", -3);
+            $sWhere .= ')';
+        }
+
+        /* Individual column filtering */
+        $sWhereSpecificArray = array();
+        $sWhereSpecificArrayCount = 0;
+        for ($i = 0; $i < count($aColumnsAlias); $i++) {
+            if ($_GET['bSearchable_' . $i] == "true" && $_GET['sSearch_' . $i] != '') {
+                //If there was no where clause
+                if ($sWhere == "") {
+                    $sWhere = "AND ";
+                } else {
+                    $sWhere .= " AND ";
+                }
+
+                //Add the clause of the specific col to the where clause
+                $sWhere .= $aColumnsAlias[$i] . " LIKE '%' || :whereSpecificParam" . $sWhereSpecificArrayCount . " || '%' ";
+
+                //Inc sWhereSpecificArrayCount. It is needed for the bind var.
+                //We could just do count($sWhereSpecificArray) - but that would be less efficient.
+                $sWhereSpecificArrayCount++;
+
+                //Add current search param to the array for later use (binding).
+                $sWhereSpecificArray[] =  $_GET['sSearch_' . $i];
+            }
+        }
+
+        //If there is still no where clause - set a general - always true where clause
+        if ($sWhere == "") {
+            $sWhere = " AND 1=1";
+        }
+
+        //Bind variables.
+        if (isset($_GET['iDisplayStart'])) {
+            $dsplyStart = $_GET['iDisplayStart'];
+        } else {
+            $dsplyStart = 0;
+        }
+        if (isset($_GET['iDisplayLength']) && $_GET['iDisplayLength'] != '-1') {
+            $dsplyRange = $_GET['iDisplayLength'];
+            if ($dsplyRange > (2147483645 - intval($dsplyStart))) {
+                $dsplyRange = 2147483645;
+            } else {
+                $dsplyRange = intval($dsplyRange);
+            }
+        } else {
+            $dsplyRange = 2147483645;
+        }
+
+        $statement_privacy = " ";
+        $reqCariCompanyName = $this->input->get('reqCariCompanyName');
+        $reqCariTypeofQualification = $this->input->get('reqCariTypeofQualification');
+        $reqTypeOfService = $this->input->get('reqTypeOfService');
+
+
+        if (!empty($reqCariCompanyName)) {
+            $statement_privacy .= " AND A.NAME LIKE '%" . $reqCariCompanyName . "%'";
+        }
+        if (!empty($reqCariTypeofQualification)) {
+            $statement_privacy .= " AND A.JENIS='" . $reqCariTypeofQualification . "'";
+        }
+        if (!empty($reqTypeOfService)) {
+            $reqTypeOfService =str_replace('-', ',', $reqTypeOfService);
+            $statement_privacy .= "   AND A.DOCUMENT_ID IN (SELECT C.DOCUMENT_ID FROM DETIL_PERSONAL_CERTIFICATE C WHERE C.CERTIFICATE_ID IN (" . $reqTypeOfService . "))";
+        }
+
+        $statement = " AND (UPPER(JENIS) LIKE '%" . strtoupper($_GET['sSearch']) . "%')";
+        $allRecord = $jenis_kualifikasi->getCountByParamsMonitoringPersonalKualifikasi(array(), $statement_privacy . $statement);
+        // echo $allRecord;exit;
+        if ($_GET['sSearch'] == "")
+            $allRecordFilter = $allRecord;
+        else
+            $allRecordFilter =  $jenis_kualifikasi->getCountByParamsMonitoringPersonalKualifikasi(array(), $statement_privacy . $statement);
+
+        $jenis_kualifikasi->selectByParamsMonitoringPersonalKualifikasi(array(), $dsplyRange, $dsplyStart, $statement_privacy . $statement, $sOrder);
+        // echo $jenis_kualifikasi->query;
+        // exit;
+        // echo "IKI ".$_GET['iDisplayStart'];
+
+        /*
+			 * Output
+			 */
+        $output = array(
+            "sEcho" => intval($_GET['sEcho']),
+            "iTotalRecords" => $allRecord,
+            "iTotalDisplayRecords" => $allRecordFilter,
+            "aaData" => array()
+        );
+
+        while ($jenis_kualifikasi->nextRow()) {
+            $row = array();
+            $reqListCertificates    = $jenis_kualifikasi->getField("LIST_CERTIFICATE");
+            $reqListCertificate = explode(',', $reqListCertificates);
+            $bollean=false;
+            $certificate ='<ol>';
+            for($i=0;$i<count($reqListCertificate);$i++){
+                if(!empty($reqListCertificate[$i])){
+                $dokumen_certificate = new DokumenCertificate();
+                $dokumen_certificate->selectByParams(array("A.DOCUMENT_ID" => $reqListCertificate[$i]));
+                $dokumen_certificate->firstRow();
+                $reqNames            = $dokumen_certificate->getField("NAME");
+                $reqIssuedDates      = $dokumen_certificate->getField("ISSUED_DATE");
+                $reqExpiredDates     = $dokumen_certificate->getField("EXPIRED_DATE");
+
+                $tgl_skrng = Date('d-m-Y');
+                $exp_date = $dokumen_certificate->getField("DATES");
+                // echo $tgl_skrng.'-'.$exp_date;
+                $datetime1 = date_create($tgl_skrng);
+                $datetime2 = date_create($exp_date);
+                $interval = date_diff($datetime1, $datetime2);
+                $interval = $interval->format("%R%a");
+                $point = substr($interval, 0,1);
+                $y = $datetime2->diff( $datetime1)->y;
+                $m = $datetime2->diff( $datetime1)->m;
+                $d = $datetime2->diff( $datetime1)->d;
+                $tgls = $y." tahun ".$m." bulan ".$d." hari";
+              
+                 $certificate .='<li>'.$reqNames.'==> EXPIRED_DATE '.$exp_date. ' ('. $tgls .') </li>';
+
+
+                if ($point == '-') {
+                    $bollean = true;
+                }
+
+                }
+
+            }
+            $color='';
+            if($bollean || empty($reqListCertificates)){
+                $color='red';
+            }
+
+            if( empty($reqListCertificates)){
+                $certificate .='<li> Dont Have Certificate </li>';
+            }
+
+            $certificate .='</ol>';
+            for ($i = 0; $i < count($aColumns); $i++) {
+                if ($aColumns[$i] == "JENIS"){
+                    $row[] = $jenis_kualifikasi->getField($aColumns[$i]);
+                }else if("DOCUMENT_ID"==$aColumns[$i]){
+                      $row[] = $jenis_kualifikasi->getField($aColumns[$i]);
+                }
+                else if("CERTIFICATE"==$aColumns[$i]){
+                      $row[] = $certificate;
+                }
+                else if("STATUS"==$aColumns[$i]){
+                      $row[] =$color;
+                }
+                else{
+                    $row[] =$jenis_kualifikasi->getField($aColumns[$i]);
+                }
+            }
+            $output['aaData'][] = $row;
+        }
+        echo json_encode($output);
+    }
+
+
+    function add()
+    {
+        $this->load->model("DokumenKualifikasi");
+        $dokumen_kualifikasi = new DokumenKualifikasi();
+
+        $this->load->library("FileHandler");
+        $file = new FileHandler();
+        $filesData = $_FILES["document"];
+        $reqLinkFileTemp              =  $this->input->post("reqLinkFileTemp");
+        $file->cekSize($filesData,$reqLinkFileTemp);
+
+        $reqMode = $this->input->post("reqMode");
+
+        $reqId = $this->input->post("reqId");
+
+        $dokumen_kualifikasi->setField("DOCUMENT_ID", $reqId);
+        $reqJenisId             = $this->input->post("reqPosition");
+        $reqName                = $this->input->post("reqName");
+        $reqAddress             = $this->input->post("reqAddress");
+        $reqBirthDate           = $this->input->post("reqBirthDate");
+        $reqPhone               = $this->input->post("reqPhone");
+        $reqPhone2              = $this->input->post("reqPhone2");
+        $reqDescription         = $this->input->post("reqDescription");
+        $reqPath                = $this->input->post("reqPath");
+        $reqTipe                = $this->input->post("reqTipe");
+        // echo dateToDBCheck2($reqBirthDate);
+
+        $reqTypeOfService        = $this->input->post("reqTypeOfService");
+        $reqIdCertifcate         = $this->input->post("reqIdCertifcate");
+        $str_desc = '';
+        for ($i = 0; $i < count($reqTypeOfService); $i++) {
+            if (!empty($reqTypeOfService[$i])) {
+                if ($i == 0) {
+                    $str_desc .= $reqTypeOfService[$i];
+                } else {
+                    $str_desc .= ',' . $reqTypeOfService[$i];
+                }
+            }
+        }
+        $dokumen_kualifikasi->setField("NAME", $reqId);
+        $dokumen_kualifikasi->setField("NAME", $reqName);
+        $dokumen_kualifikasi->setField("ADDRESS", $reqAddress);
+        $dokumen_kualifikasi->setField("JENIS_ID", $reqJenisId);
+        $dokumen_kualifikasi->setField("BIRTH_DATE", dateToDBCheck($reqBirthDate));
+        $dokumen_kualifikasi->setField("PHONE", $reqPhone);
+        $dokumen_kualifikasi->setField("PHONE2", $reqPhone2);
+        $dokumen_kualifikasi->setField("DESCRIPTION", $str_desc);
+        $dokumen_kualifikasi->setField("PATH", $reqPath);
+
+
+
+        if (empty($reqId)) {
+            $dokumen_kualifikasi->insert();
+            $reqId = $dokumen_kualifikasi->id;
+        } else {
+            $dokumen_kualifikasi->update();
+        }
+
+
+        $name_folder = strtolower(str_replace(' ', '_', $reqTipe));
+       
+        $FILE_DIR = "uploads/" . $name_folder . "/" . $reqId . "/";
+        makedirs($FILE_DIR);
+
+
+        $arrData = array();
+        for ($i = 0; $i < count($filesData['name']); $i++) {
+            $renameFile = $reqId . '-' . $i . "-" . getExtension($filesData['name'][$i]);
+            if ($file->uploadToDirArray('document', $FILE_DIR, $renameFile, $i)) {
+                array_push($arrData, $renameFile);
+            } else {
+                array_push($arrData, $reqLinkFileTemp[$i]);
+            }
+        }
+        $str_name_path = '';
+        for ($i = 0; $i < count($arrData); $i++) {
+            if (!empty($arrData[$i])) {
+                if ($i == 0) {
+                    $str_name_path .= $arrData[$i];
+                } else {
+                    $str_name_path .= ',' . $arrData[$i];
+                }
+            }
+        }
+        $str_name_path2 = '';
+        for ($i = 0; $i < count($reqIdCertifcate); $i++) {
+            if (!empty($reqIdCertifcate[$i])) {
+                if ($i == 0) {
+                    $str_name_path2 .= $reqIdCertifcate[$i];
+                } else {
+                    $str_name_path2 .= ',' . $reqIdCertifcate[$i];
+                }
+            }
+        }
+
+
+        $this->load->model("DokumenKualifikasi");
+        $dokumen_kualifikasi = new DokumenKualifikasi();
+        $dokumen_kualifikasi->setField("DOCUMENT_ID", $reqId);
+        $dokumen_kualifikasi->setField("PATH", $str_name_path);
+        $dokumen_kualifikasi->update_path();
+
+        $this->load->model("DokumenKualifikasi");
+        $dokumen_kualifikasi = new DokumenKualifikasi();
+        $dokumen_kualifikasi->setField("DOCUMENT_ID", $reqId);
+        $dokumen_kualifikasi->setField("LIST_CERTIFICATE", $str_name_path2);
+        $dokumen_kualifikasi->updateListCertificate();
+
+        $this->add_tambahan($reqId);
+        
+
+        echo $reqId . '-Data Berhasil di simpan';
+    }
+
+    function add_tambahan($reqId){
+       $reqIdCard             = $this->input->post("reqIdCard");
+       $reqIdNumber                = $this->input->post("reqIdNumber");
+       $reqCabangId             = $this->input->post("reqCabangId");
+
+       $this->load->model("DokumenKualifikasi");
+       $dokumen_kualifikasi = new DokumenKualifikasi();
+       $dokumen_kualifikasi->setField("ID_NUMBER", $reqIdNumber);
+       $dokumen_kualifikasi->setField("ID_CARD", $reqIdCard);
+       $dokumen_kualifikasi->setField("CABANG_ID", $reqCabangId);
+       $dokumen_kualifikasi->setField("DOCUMENT_ID", $reqId);
+       $dokumen_kualifikasi->update_tambahan();
+    }
+
+    function delete()
+    {
+        $this->load->model("DokumenKualifikasi");
+        $dokumen_kualifikasi = new DokumenKualifikasi();
+
+
+        $reqId = $this->input->get('reqId');
+
+        $dokumen_kualifikasi->setField("DOCUMENT_ID", $reqId);
+        if ($dokumen_kualifikasi->delete())
+            $arrJson["PESAN"] = "Data berhasil dihapus.";
+        else
+            $arrJson["PESAN"] = "Data gagal dihapus.";
+
+        echo json_encode($arrJson);
+    }
+
+    // function combo()
+    // {
+    //     $this->load->model("ForumKategori");
+    //     $forum_kategori = new ForumKategori();
+
+    //     $forum_kategori->selectByParams(array());
+    //     $i = 0;
+    //     while ($forum_kategori->nextRow()) {
+    //         $arr_json[$i]['id']        = $forum_kategori->getField("FORUM_KATEGORI_ID");
+    //         $arr_json[$i]['text']    = $forum_kategori->getField("NAMA");
+    //         $i++;
+    //     }
+
+    //     echo json_encode($arr_json);
+    // }
+}
