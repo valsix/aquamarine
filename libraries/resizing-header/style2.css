@@ -1,0 +1,134 @@
+/* CSS Document */
+
+/*#warp { 
+height:11500px;
+ }
+ 
+ 
+ #content-warp {
+	 max-width:900px;
+	 margin:190px auto;
+	 font-size:22px;
+	 line-height:30px;}*/
+
+.resize-header {
+    width: 100%;
+    *height: 90px;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 999;
+    *background-color: #3b8dbd;
+    -webkit-transition: height 0.3s;
+    -moz-transition: height 0.3s;
+    -ms-transition: height 0.3s;
+    -o-transition: height 0.3s;
+    transition: height 0.3s;
+}
+/*.resize-header h1#logo {
+    display: inline=block;
+    height: 150px;
+    float: left;
+	margin-left:50px;
+    font-family: "Oswald", sans-serif;
+    font-size: 60px;
+    color: white;
+    font-weight: 400;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    -ms-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    transition: all 0.3s;
+}
+.resize-header nav {
+    display: inline=block;
+    float: right;
+	margin-right:50px;
+}
+.resize-header nav a {
+    line-height: 150px;
+    margin-left: 20px;
+    color: #9fdbfc;
+    font-weight: 700;
+    font-size: 18px;
+    -webkit-transition: all 0.3s;
+    -moz-transition: all 0.3s;
+    -ms-transition: all 0.3s;
+    -o-transition: all 0.3s;
+    transition: all 0.3s;
+}
+.resize-header nav a:hover {
+    color: white;
+}
+.resize-header.smaller {
+    height: 5px;
+}
+.resize-header.smaller h1#logo {
+    width: 150px;
+    height: 75px;
+    font-size: 30px;
+}
+.resize-header.smaller nav a {
+    line-height: 75px;
+}*/
+
+@media all and (max-width: 660px) {
+    /*.resize-header h1#logo {
+        display: block;
+        float: none;
+        margin: 0 auto;
+        height: 100px;
+		line-height:100px;
+        text-align: center;
+    }
+    .resize-header nav {
+        display: block;
+        float: none;
+        height: 50px;
+		line-height:50px;
+        text-align: center;
+        margin: 0 auto;
+    }
+    .resize-header nav a {
+        line-height: 50px;
+        margin: 0 10px;
+    }
+    .resize-header.smaller {
+        height: 75px;
+    }
+    .resize-header.smaller h1#logo {
+        height: 40px;
+		line-height: 40px;
+        font-size: 30px;
+    }
+    .resize-header.smaller nav {
+        height: 35px;
+		line-height:35px;
+    }
+    .resize-header.smaller nav a {
+        line-height: 35px;
+    }*/
+}
+
+/****/
+@media screen and (max-width:767px) {
+	.resize-header {
+		width: 100%;
+		*height: 90px;
+		overflow: hidden;
+		position: relative !important;
+		top: 0;
+		left: 0;
+		z-index: 999;
+		*background-color: #3b8dbd;
+		-webkit-transition: height 0.3s;
+		-moz-transition: height 0.3s;
+		-ms-transition: height 0.3s;
+		-o-transition: height 0.3s;
+		transition: height 0.3s;
+	}
+
+}
+
+

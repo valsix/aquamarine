@@ -1,0 +1,16 @@
+RewriteEngine On
+
+# Turn off HTTPS
+RewriteCond %{HTTPS} on
+RewriteRule ^ http://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]  
+
+<Files "index.php">
+AcceptPathInfo On
+</Files>  
+
+php_flag display_errors On
+php_value max_input_vars 10000

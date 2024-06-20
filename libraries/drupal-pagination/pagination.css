@@ -1,0 +1,54 @@
+/*DRUPAL*/
+.pagerDRUPAL{
+	*background:#9C0;
+	clear:both;
+	*font-family:"Bitstream Vera Sans",Verdana,Helvetica;
+	font-size:14px;}
+.pagerDRUPAL a,
+.pagerDRUPAL strong.pagerDRUPAL-current{
+	*padding:0.5em;
+	color:#333333;
+	font-weight:bold;
+	text-decoration:none;
+}
+.pagerDRUPAL{
+	clear:both;
+	padding:0px 0px 0px;
+}
+.pagerDRUPAL div{
+	padding:0em;
+	display:inline;
+}
+.pagerDRUPAL strong,.pagerDRUPAL a{
+	
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+	
+	width:32px !important;
+	height:32px !important;
+	line-height:28px;
+	text-align:center;
+	display:inline-block;
+
+	*padding:2px 5px;
+	*margin:0px 0.25em 0px 0.25em;
+	*background:#dfedf7;
+	*border:1px solid #90c2e1;
+	*-moz-border-radius:2px;
+}
+.pagerDRUPAL a:hover{
+	text-decoration:underline;
+	*background:#eef7fc;
+	background:#1c647f !important;
+	color:#FFF;
+}
+.pagerDRUPAL strong{
+	*background:#0174bb;
+	*color:#fff;
+	color:#1c647f;
+	border:1px solid #1c647f;
+	
+	
+	display:inline-block;
+}
