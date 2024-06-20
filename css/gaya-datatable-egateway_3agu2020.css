@@ -1,0 +1,120 @@
+table.dataTable th,
+table.dataTable td {
+    white-space: nowrap;
+}
+
+/****/
+table.table.table-striped.table-hover.dt-responsive.dataTable.no-footer.dtr-inline tbody tr.even.row_selected td {
+	background-color: #f25824 !important;
+	color: #FFF;
+}
+table.table.table-striped.table-hover.dt-responsive.dataTable.no-footer.dtr-inline tbody tr.odd.row_selected td {
+	background-color: #f25824 !important;
+	color: #FFF;
+}
+
+/****/
+.dataTables_paginate{
+	*border:1px solid red;
+}
+a.fg-button{
+	*border:1px solid cyan;
+	display:inline-block;
+	/*height:23px;
+	line-height:23px;
+	padding:0 15px;*/
+	
+	width: 28px;
+	height: 28px;
+	line-height: 28px;
+	text-align: center;
+	
+	-webkit-border-radius: 14px;
+	-moz-border-radius: 14px;
+	border-radius: 14px;
+	
+	margin-right:2px;
+	background:rgba(255,255,255,0.90);
+	
+	color:#2da2cc;
+	
+	*font-size:13px !important;
+	font-size: 12px !important;
+}
+a.fg-button:hover{
+	text-decoration:none;
+	background:rgba(255,255,255,1.00);
+}
+a.fg-button.ui-state-disabled{
+	*background:grey !important;
+	background: rgba(0,0,0,0.1) !important;
+	cursor:default;
+	color:rgba(255,255,255,0.7);
+	
+}
+.dataTables_paginate span.ellipsis{
+	*border: 1px solid red;
+	display:inline-block;
+	
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	
+	margin-right:2px;
+	
+	*background: rgba(0,0,0,0.1);
+	*color:rgba(255,255,255,0.7);
+}
+
+/****/
+.dataTables_filter input{
+	
+}
+.dataTables_filter label input[type=search]{
+	*border-radius:0px;
+	background: none;
+	border: 1px solid rgba(255,255,255,0.5);
+}
+
+/****/
+table.table.table-striped.table-hover.dt-responsive thead th{
+
+	*background: #555 !important;
+	background: #1c4b96 !important;
+	color: #FFF;
+	
+	font-family: 'avenir-next-demibold';
+}
+/* table.table.table-striped.table-hover.dt-responsive.dataTable.no-footer.dtr-inline.collapsed thead th{ */
+
+table.dataTable tbody tr.odd,
+table.dataTable tbody tr.even{
+	background-color: transparent;
+}
+table.dataTable tbody tr.odd td,
+table.dataTable tbody tr.even td{
+	color: #FFFFFF;
+}
+.table > tbody > tr > td, 
+.table > tbody > tr > th, 
+.table > tfoot > tr > td, 
+.table > tfoot > tr > th, 
+.table > thead > tr > td, 
+.table > thead > tr > th {
+    *padding: 8px;
+    *line-height: 1.42857143;
+    *vertical-align: top;
+    border-top: 1px solid rgba(255,255,255,0.2);
+	*border-top: 1px solid #ecf7fd;
+}
+.table > thead > tr > th {
+    *vertical-align: bottom;
+    *border-bottom: 2px solid #ddd;
+	*border-bottom: 2px solid rgba(0,0,0,0.1);
+	border-bottom: none;
+}

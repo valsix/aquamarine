@@ -1,0 +1,44 @@
+@font-face {
+    font-family: 'avenir-next-regular';
+    src: url('../fonts/avenir-next/avenir-next-regular-webfont.eot');
+    src: url('../fonts/avenir-next/avenir-next-regular-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/avenir-next/avenir-next-regular-webfont.woff') format('woff'),
+         url('../fonts/avenir-next/avenir-next-regular-webfont.ttf') format('truetype'),
+         url('../fonts/avenir-next/avenir-next-regular-webfont.svg#avenir-next-regular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+@font-face {
+    font-family: 'avenir-next-demibold';
+    src: url('../fonts/avenir-next/avenirnextdemibold.eot');
+    src: url('../fonts/avenir-next/avenirnextdemibold.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/avenir-next/avenirnextdemibold.woff') format('woff'),
+         url('../fonts/avenir-next/avenirnextdemibold.ttf') format('truetype'),
+         url('../fonts/avenir-next/avenirnextdemibold.svg#avenir-next-demibold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+@font-face {
+    font-family: 'avenir-next-bold';
+    src: url('../fonts/avenir-next/avenir-next-bold-webfont.eot');
+    src: url('../fonts/avenir-next/avenir-next-bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('../fonts/avenir-next/avenir-next-bold-webfont.woff') format('woff'),
+         url('../fonts/avenir-next/avenir-next-bold-webfont.ttf') format('truetype'),
+         url('../fonts/avenir-next/avenir-next-bold-webfont.svg#avenir-next-bold') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+/* TTF type */
+@font-face {
+	/*font-family: 'Futura-Condensed';
+	src: url('../fonts/Futura/Futura-Condensed.otf');*/
+}
+
+
+
+
+
